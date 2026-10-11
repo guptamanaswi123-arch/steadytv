@@ -1,0 +1,15 @@
+:root{color-scheme:dark;--bg:#0f1420;--card:#1a2236;--fg:#eef2fa;--mut:#9aa6bf;--ok:#34d399;--warn:#fbbf24;--acc:#60a5fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:max(20px,1.15vw)/1.5 system-ui,sans-serif}
+header,main{max-width:min(1100px,94vw);margin:0 auto;padding:12px 16px}
+h1{margin:.2em 0;font-size:1.8em}h1 span{color:var(--acc);font-weight:400}
+.privacy{color:var(--mut);margin:0;font-size:.9em}
+.stage{position:relative;background:#000;border-radius:14px;overflow:hidden;aspect-ratio:4/3}
+video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#banner{position:absolute;left:8px;right:8px;bottom:8px;background:#000a;padding:6px 10px;border-radius:8px;font-size:.95rem}
+.row{display:flex;gap:8px;align-items:end;margin:12px 0}
+label{flex:1;display:flex;flex-direction:column;gap:4px;color:var(--mut);font-size:.85em}
+input{font:inherit;padding:10px;border-radius:10px;border:1px solid #33405e;background:var(--card);color:var(--fg)}
+button{font:inherit;padding:10px 18px;border-radius:10px;border:0;background:var(--acc);color:#04122b;font-weight:700;cursor:pointer}
+ul{list-style:none;padding:12px;margin:0;background:var(--card);border-radius:12px}
+li.ok::before{content:"✅ "}li.bad::before{content:"⚠️ "}li.wait::before{content:"⏳ "}
+.tip{color:var(--mut);font-size:.9em}

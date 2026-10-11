@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SteadyTV Camera</title>
+<link rel="stylesheet" href="/phone/style.css">
+</head>
+<body>
+<header>
+  <h1>SteadyTV <span>camera</span></h1>
+  <p class="privacy">🔒 Video stays on this device. Only skeleton points (numbers) are sent to the TV.</p>
+</header>
+<main>
+  <div class="stage">
+    <video id="video" playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <div id="banner">Starting…</div>
+  </div>
+  <div class="row">
+    <label>TV room code <input id="room" inputmode="numeric" maxlength="8" placeholder="e.g. 4821"></label>
+    <button id="connect">Connect</button>
+  </div>
+  <ul id="status">
+    <li id="s-cam">Camera: waiting</li>
+    <li id="s-model">Pose model: waiting</li>
+    <li id="s-tv">TV: not connected</li>
+  </ul>
+  <p class="tip">Tip: prop this device 2–3 metres away at about chest height, so your whole body (head to feet) is in view, with a chair in frame.</p>
+</main>
+<script type="module" src="/phone/app.js"></script>
+</body>
+</html>
