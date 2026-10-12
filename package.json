@@ -1,6 +1,6 @@
 {
   "name": "steadytv",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Living-room fall-risk screening for older adults on Fire TV / Android TV (CDC STEADI tests, on-device pose estimation)",
   "main": "server.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.1.0",
+    "selfsigned": "^5.5.0",
     "ws": "^8.22.0"
   }
 }

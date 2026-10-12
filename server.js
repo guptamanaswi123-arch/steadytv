@@ -2,12 +2,16 @@
 // and stores each household's progress as a small JSON file on this computer.
 // No video ever reaches this server: the camera page sends only skeleton landmarks (numbers).
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { WebSocketServer } = require('ws');
 
 const PORT = Number(process.env.PORT || 3000);
+// HTTPS (self-signed) so a phone on the same Wi-Fi can use its camera: browsers only allow cameras on https pages.
+const HTTPS_PORT = Number(process.env.HTTPS_PORT || 3443);
+let httpsActive = false;
 const ROOT = __dirname;
 const DATA_DIR = process.env.STEADY_DATA || path.join(ROOT, 'data');
 
@@ -101,7 +105,7 @@ ${last.status === 'watch' || last.status === 'talk' ? '<p>Consider talking with 
 <p style="color:#666;font-size:.9rem">SteadyTV is a screening and exercise aid based on CDC STEADI tests and Otago-style home exercises. It is not a medical diagnosis. Results are computed on the household's own devices from skeleton points; no video is recorded or sent.</p>`;
 }
 
-const server = http.createServer(async (req, res) => {
+const handler = async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const p = decodeURIComponent(url.pathname);
 
@@ -109,7 +113,7 @@ const server = http.createServer(async (req, res) => {
   if (p === '/favicon.ico') { res.writeHead(204); return res.end(); }
   if (PAGES[p]) return sendFile(res, path.join(ROOT, PAGES[p]));
   if (p === '/api/health') return json(res, 200, { ok: true });
-  if (p === '/api/info') return json(res, 200, { port: PORT, lan: lanAddresses() });
+  if (p === '/api/info') return json(res, 200, { port: PORT, httpsPort: httpsActive ? HTTPS_PORT : null, lan: lanAddresses() });
 
   let m = p.match(/^\/api\/profile\/([^/]+)$/);
   if (m) {
@@ -142,10 +146,11 @@ const server = http.createServer(async (req, res) => {
   }
   res.writeHead(404, { 'Content-Type': 'text/plain' });
   res.end('Not found');
-});
+};
+const server = http.createServer(handler);
 
 const wss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 });
-server.on('upgrade', (req, socket, head) => {
+const onUpgrade = (req, socket, head) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname !== '/ws') return socket.destroy();
   const room = url.searchParams.get('room');
@@ -155,7 +160,8 @@ server.on('upgrade', (req, socket, head) => {
     ws.room = room; ws.role = role;
     wss.emit('connection', ws);
   });
-});
+};
+server.on('upgrade', onUpgrade);
 
 function presence(room) {
   const set = rooms.get(room) || new Set();
@@ -184,12 +190,43 @@ wss.on('connection', (ws) => {
   ws.on('error', () => {});
 });
 
+// One self-signed certificate, saved in the data folder so the phone only has to accept it once.
+async function loadOrCreateCert() {
+  const file = path.join(DATA_DIR, 'https-cert.json');
+  try {
+    const c = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (c.cert && c.key && Date.now() < c.expires) return { cert: c.cert, key: c.key };
+  } catch { /* create a new one */ }
+  const selfsigned = require('selfsigned');
+  const alt = [{ type: 2, value: 'localhost' }, ...lanAddresses().map((ip) => ({ type: 7, ip }))];
+  const pems = await selfsigned.generate([{ name: 'commonName', value: 'steadytv.local' }], {
+    days: 365, keySize: 2048, algorithm: 'sha256',
+    extensions: [{ name: 'subjectAltName', altNames: alt }],
+  });
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(file, JSON.stringify({ cert: pems.cert, key: pems.private, expires: Date.now() + 360 * 86400000 }));
+  return { cert: pems.cert, key: pems.private };
+}
+
+async function startHttps() {
+  const { cert, key } = await loadOrCreateCert();
+  const secure = https.createServer({ cert, key }, handler);
+  secure.on('upgrade', onUpgrade);
+  await new Promise((resolve, reject) => { secure.once('error', reject); secure.listen(HTTPS_PORT, '0.0.0.0', resolve); });
+  httpsActive = true;
+  return secure;
+}
+
 if (require.main === module) {
-  server.listen(PORT, '0.0.0.0', () => {
+  server.listen(PORT, '0.0.0.0', async () => {
     console.log('\nSteadyTV is running.\n');
     console.log(`  TV screen (browser test):  http://localhost:${PORT}/tv`);
     console.log(`  Camera page (laptop):      http://localhost:${PORT}/phone`);
     console.log(`  TV emulator address:       http://10.0.2.2:${PORT}/tv`);
+    try {
+      await startHttps();
+      for (const ip of lanAddresses()) console.log(`  Camera page (PHONE, same Wi-Fi): https://${ip}:${HTTPS_PORT}/phone   <- accept the browser's security warning once`);
+    } catch (e) { console.log(`  (HTTPS for phones not started: ${e.message})`); }
     for (const ip of lanAddresses()) console.log(`  Family report on Wi-Fi:    http://${ip}:${PORT}/family/home`);
     console.log('\nPress Ctrl+C to stop.\n');
   });

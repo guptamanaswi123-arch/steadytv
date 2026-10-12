@@ -3,7 +3,7 @@
  * and runs all logic locally (shared/logic.js, shared/exercises.js). */
 (() => {
   'use strict';
-  const VERSION = 'v0.7';
+  const VERSION = 'v0.8';
   const L = window.SteadyLogic;
   const X = window.SteadyExercises;
   const STR = window.STEADY_STRINGS;
@@ -273,7 +273,8 @@
   function goPair() {
     S.demo = false;
     const port = location.port || '80';
-    const urls = ['localhost', ...S.lan].map((h) => `http://${h}:${port}/phone?room=${S.room}`);
+    const urls = [`http://localhost:${port}/phone?room=${S.room}`,
+      ...S.lan.map((h) => (S.httpsPort ? `https://${h}:${S.httpsPort}` : `http://${h}:${port}`) + `/phone?room=${S.room}`)];
     screen('pair', `
       <h1>SteadyTV</h1>
       <p class="muted">${t('tagline')}</p>
@@ -878,7 +879,7 @@
 
   // ---------- boot ----------
   try { window.speechSynthesis && window.speechSynthesis.getVoices(); } catch (_) {}
-  fetch('/api/info').then((r) => r.json()).then((i) => { S.lan = i.lan || []; if (S.screen === 'pair') goPair(); }).catch(() => {});
+  fetch('/api/info').then((r) => r.json()).then((i) => { S.lan = i.lan || []; S.httpsPort = i.httpsPort || null; if (S.screen === 'pair') goPair(); }).catch(() => {});
   loadProfile('home').then((p) => { if (p && p.lang) { S.lang = p.lang; } if (p && typeof p.audio === 'boolean') S.audio = p.audio; if (S.screen === 'pair') goPair(); });
   connectWs();
   goPair();

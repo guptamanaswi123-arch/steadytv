@@ -8,16 +8,20 @@ import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 
 /**
  * Minimal Fire OS / Android TV shell: it just shows the SteadyTV web UI full screen.
  * 10.0.2.2 is the Android emulator's alias for "the computer the emulator runs on".
- * Change SERVER_URL if you host the server somewhere else.
+ * Change serverUrl if you host the server somewhere else.
+ *
+ * The remote's Back button is passed to the web page first (so it goes back one screen);
+ * only when the page has nothing to go back to does the app close.
  */
 class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
-    private val SERVER_URL = "http://10.0.2.2:3000/tv"
+    private val serverUrl = "http://10.0.2.2:3000/tv"
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +40,20 @@ class MainActivity : AppCompatActivity() {
         web.setBackgroundColor(0xFF0B1020.toInt())
         web.isFocusable = true
         web.requestFocus()
-        web.loadUrl(SERVER_URL)
+        web.loadUrl(serverUrl)
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val js = "(function(){var e=new KeyboardEvent('keydown',{key:'GoBack',cancelable:true});" +
+                    "document.dispatchEvent(e);return e.defaultPrevented;})()"
+                web.evaluateJavascript(js) { handled ->
+                    if (handled != "true") {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                }
+            }
+        })
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -47,10 +64,5 @@ class MainActivity : AppCompatActivity() {
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
         }
-    }
-
-    @Deprecated("Back goes to the previous page, then exits")
-    override fun onBackPressed() {
-        if (web.canGoBack()) web.goBack() else super.onBackPressed()
     }
 }

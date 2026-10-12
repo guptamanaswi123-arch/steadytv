@@ -34,8 +34,10 @@ npm start
 synthetic skeleton generator used for the unit tests and for demo mode.
 
 ## Phone camera over Wi-Fi
-Browsers only allow camera access on `localhost` or HTTPS. For a real phone, tunnel the server over HTTPS
-(for example `cloudflared tunnel --url http://localhost:3000`) and open the tunnel URL + `/phone?room=CODE`.
+Browsers only allow camera access on `localhost` or HTTPS. `npm start` therefore also starts a self-signed HTTPS
+server on port 3443. On a phone on the same Wi-Fi, open the `https://<computer-ip>:3443/phone?room=CODE` link shown on the
+TV screen and accept the browser's one-time security warning (the certificate is generated on your own computer).
+If your network blocks that, a tunnel such as `cloudflared tunnel --url http://localhost:3000` also works.
 
 ## Limits (honest)
 Front-camera heuristics approximate foot positions for balance stages 2-3. Use as a screening aid with a helper nearby.
