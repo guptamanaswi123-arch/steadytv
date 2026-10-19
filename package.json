@@ -1,18 +1,20 @@
 {
   "name": "steadytv",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "description": "Living-room fall-risk screening for older adults on Fire TV / Android TV (CDC STEADI tests, on-device pose estimation)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/logic.test.js test/exercises.test.js test/i18n.test.js",
-    "fetch-model": "node scripts/fetch-model.js"
+    "test": "node --test test/logic.test.js test/exercises.test.js test/i18n.test.js test/voice.test.js",
+    "fetch-model": "node scripts/fetch-model.js",
+    "build-static": "node scripts/build-static.js"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.1.0",
+    "qrcode-generator": "^2.0.4",
     "selfsigned": "^5.5.0",
     "ws": "^8.22.0"
   }

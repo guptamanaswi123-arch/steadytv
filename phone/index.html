@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SteadyTV Camera</title>
-<link rel="stylesheet" href="/phone/style.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
@@ -21,6 +21,13 @@
     <label>TV room code <input id="room" inputmode="numeric" maxlength="8" placeholder="e.g. 4821"></label>
     <button id="connect">Connect</button>
   </div>
+  <div class="row">
+    <button id="voice" type="button">🎤 Voice commands: off</button>
+    <label>Speech language
+      <select id="vlang"><option value="en-IN">English</option><option value="hi-IN">हिन्दी</option></select>
+    </label>
+  </div>
+  <p id="heard" class="tip" aria-live="polite">Say: start, next, back, stop, repeat, mute</p>
   <ul id="status">
     <li id="s-cam">Camera: waiting</li>
     <li id="s-model">Pose model: waiting</li>
@@ -28,6 +35,7 @@
   </ul>
   <p class="tip">Tip: prop this device 2–3 metres away at about chest height, so your whole body (head to feet) is in view, with a chair in frame.</p>
 </main>
-<script type="module" src="/phone/app.js"></script>
+<script src="../shared/voice.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

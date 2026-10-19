@@ -3,17 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f2624">
 <title>SteadyTV</title>
-<link rel="stylesheet" href="/tv/style.css">
+<link rel="preload" href="fonts/atkinson-hyperlegible-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div id="safe">
   <div id="app"></div>
   <div id="caption" aria-live="polite"></div>
 </div>
-<script src="/shared/logic.js"></script>
-<script src="/shared/exercises.js"></script>
-<script src="/tv/i18n.js"></script>
-<script src="/tv/app.js"></script>
+<script src="../shared/logic.js"></script>
+<script src="../shared/exercises.js"></script>
+<script src="../vendor/qrcode/qrcode.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

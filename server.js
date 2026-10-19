@@ -21,12 +21,14 @@ const MOUNTS = {
   '/shared/': path.join(ROOT, 'shared'),
   '/models/': path.join(ROOT, 'models'),
   '/vendor/mediapipe/': path.join(ROOT, 'node_modules', '@mediapipe', 'tasks-vision'),
+  '/vendor/qrcode/': path.join(ROOT, 'node_modules', 'qrcode-generator', 'dist'),
 };
-const PAGES = { '/phone': 'phone/index.html', '/tv': 'tv/index.html' };
+// Pages live in folders and use relative links, so the same files also work on static hosting (GitHub Pages).
+const PAGES = { '/phone/': 'phone/index.html', '/tv/': 'tv/index.html' };
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.wasm': 'application/wasm',
-  '.svg': 'image/svg+xml', '.png': 'image/png', '.task': 'application/octet-stream', '.ico': 'image/x-icon',
+  '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.task': 'application/octet-stream', '.ico': 'image/x-icon',
 };
 const ID_RE = /^[A-Za-z0-9_-]{1,32}$/;
 const rooms = new Map(); // room -> Set<ws>
@@ -109,8 +111,9 @@ const handler = async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const p = decodeURIComponent(url.pathname);
 
-  if (p === '/') { res.writeHead(302, { Location: '/tv' }); return res.end(); }
+  if (p === '/') { res.writeHead(302, { Location: '/tv/' }); return res.end(); }
   if (p === '/favicon.ico') { res.writeHead(204); return res.end(); }
+  if (p === '/tv' || p === '/phone') { res.writeHead(301, { Location: p + '/' + url.search }); return res.end(); }
   if (PAGES[p]) return sendFile(res, path.join(ROOT, PAGES[p]));
   if (p === '/api/health') return json(res, 200, { ok: true });
   if (p === '/api/info') return json(res, 200, { port: PORT, httpsPort: httpsActive ? HTTPS_PORT : null, lan: lanAddresses() });
@@ -220,12 +223,12 @@ async function startHttps() {
 if (require.main === module) {
   server.listen(PORT, '0.0.0.0', async () => {
     console.log('\nSteadyTV is running.\n');
-    console.log(`  TV screen (browser test):  http://localhost:${PORT}/tv`);
-    console.log(`  Camera page (laptop):      http://localhost:${PORT}/phone`);
-    console.log(`  TV emulator address:       http://10.0.2.2:${PORT}/tv`);
+    console.log(`  TV screen (browser test):  http://localhost:${PORT}/tv/`);
+    console.log(`  Camera page (laptop):      http://localhost:${PORT}/phone/`);
+    console.log(`  TV emulator address:       http://10.0.2.2:${PORT}/tv/`);
     try {
       await startHttps();
-      for (const ip of lanAddresses()) console.log(`  Camera page (PHONE, same Wi-Fi): https://${ip}:${HTTPS_PORT}/phone   <- accept the browser's security warning once`);
+      for (const ip of lanAddresses()) console.log(`  Camera page (PHONE, same Wi-Fi): https://${ip}:${HTTPS_PORT}/phone/   <- accept the browser's security warning once`);
     } catch (e) { console.log(`  (HTTPS for phones not started: ${e.message})`); }
     for (const ip of lanAddresses()) console.log(`  Family report on Wi-Fi:    http://${ip}:${PORT}/family/home`);
     console.log('\nPress Ctrl+C to stop.\n');
