@@ -200,6 +200,25 @@
     else if (m.cmd === 'mute') { S.audio = false; try { NATIVE && NATIVE.stop(); window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {} say(lastSaid, { speak: false }); saveProfile(); }
     else if (m.cmd === 'unmute') { S.audio = true; say(lastSaid || '', { force: true }); saveProfile(); }
   }
+  // Voice commands on this device (web version): the browser's own speech recognition listens, same parser as the phone.
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  function stopVoiceHere() { S.voiceHere = false; if (rec) { rec.onend = null; try { rec.stop(); } catch (_) {} rec = null; } }
+  function startVoiceHere() {
+    if (!SR) { toast(t('voiceNoBrowser')); return; }
+    stopVoiceHere(); S.voiceHere = true;
+    rec = new SR(); rec.continuous = true; rec.interimResults = false; rec.lang = S.lang === 'hi' ? 'hi-IN' : 'en-US';
+    rec.onresult = (e) => {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (!e.results[i].isFinal) continue;
+        const text = e.results[i][0].transcript.trim();
+        onVoice({ text, cmd: window.SteadyVoice ? window.SteadyVoice.parse(text) : null });
+      }
+    };
+    rec.onerror = (e) => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { stopVoiceHere(); toast(t('voiceBlocked')); } };
+    rec.onend = () => { if (S.voiceHere) setTimeout(() => { try { rec.start(); } catch (_) {} }, 300); };
+    try { rec.start(); toast(t('voiceOnToast')); } catch (_) {}
+  }
   let ws = null;
   function connectWs() {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -377,7 +396,8 @@
   function goWelcomeWeb() {
     const items = [{ label: () => t('tryDemo'), onEnter: () => startWithProfile('demo') }];
     if (canSelfCam()) items.push({ label: () => t('useThisCamera'), onEnter: goSelfCam });
-    items.push(langItem(() => { saveProfile(); goPair(); }));
+    if (SR && !NATIVE) items.push({ label: () => t(S.voiceHere ? 'voiceOn' : 'voiceOff'), onEnter: () => { S.voiceHere ? stopVoiceHere() : startVoiceHere(); goWelcomeWeb(); } });
+    items.push(langItem(() => { saveProfile(); if (S.voiceHere) startVoiceHere(); goPair(); }));
     screen('pair', `
       <div class="welcome">
         <div class="hero">${LOGO}<h1>SteadyTV</h1></div>
