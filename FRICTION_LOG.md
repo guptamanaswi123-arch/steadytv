@@ -13,3 +13,8 @@ Format: date · what I tried · what went wrong · how I fixed it · what the do
 - Workaround: Added a static GitHub Pages version and a 1.5-second Android WebView fallback to the hosted site.
 - Status: Implemented in v1.0; hosted deployment and device fallback require verification.
 - Suggestion: Provide official Fire TV documentation for hybrid WebView applications with hosted fallback.
+
+## GitHub Pages first deploy
+- Pages deploy failed with "Not Found" until Settings > Pages > Source was set to GitHub Actions; the error message did not explain this.
+- github.io was unreachable on one ISP (ERR_SSL_PROTOCOL_ERROR) but worked on another, so the Android shell needs a clear offline message.
+- Android WebView has no SpeechRecognition support in our setup, so Fire TV voice commands require a companion device or native bridge.
